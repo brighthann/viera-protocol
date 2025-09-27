@@ -1,0 +1,42 @@
+services:
+  oracle-bridge:
+    build: .
+    container_name: viera-oracle-bridge
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - .env
+    volumes:
+      - ./logs:/app/logs
+      - ./src:/app/src
+    restart: unless-stopped
+    depends_on:
+      - ai-validation-service
+    networks:
+      - viera-network
+
+  ai-validation-service:
+    build: 
+      context: ../ai-validation-service
+      dockerfile: Dockerfile
+    container_name: viera-ai-validation
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/app
+      - ENVIRONMENT=production
+    volumes:
+      - ../ai-validation-service/app:/app/app
+      - temp_files:/tmp/viera_validation
+    restart: unless-stopped
+    networks:
+      - viera-network
+
+networks:
+  viera-network:
+    driver: bridge
+
+volumes:
+  temp_files:
